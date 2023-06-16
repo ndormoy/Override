@@ -2,20 +2,20 @@ By analyzing the decompilated code we can see some vulnerabilities,
 at first we think thath the point of the exercise was to call:
 system("/bin/sh");
 
-but we had to pass the strncmp and for us it was very complicated so
+but we had to pass the strncmp and for us it was very hard so
 we decided to do a string attack:
 
 First thing we've done, is to calculate the distances between s and ptr.
-Beacause ptr is containing the password and if we find the distances between s and ptr we could print the memory and find what was inside the stack so the password.
+Because ptr is containing the password and if we find the distance between s and ptr we could print the memory and find what was inside the stack so the password.
 
-we know by looking the decompilated code that s is rbp-70h and ptr  is rbp-A0h => a0 = 160 and 70 = 112 => we've tried with theses value
+we know by looking the decompilated code that s is rbp-70h and ptr  is rbp-A0h => a0 = 160 and 70 = 112 => we've tried with theses values
 but we didnt find the reel start of s we didnt find were was ptr.
 
 So we decided to do the same thing but with s2 rbp-110h:
 110 => 272
 a0  => 160
 
-272 - 160 = 112 ==> divide by 8 to have block of memory in 64 bits
+272 - 160 = 112 ==> divide by 8 to have blocks of memory in 64 bits
 => 112 / 8 = 14 => So the distance between s2 and ptr is 14 blocks
 
 We also know that the password is 41 bytes long (29 in hex),
@@ -23,7 +23,6 @@ so 41 / 8 = 5 => so the password is 5 blocks of memory long.
 
 https://nixhacker.com/case-of-format-string-in-64-bit-is-it-still-critical/
 In 64 bits we've print the memory with %p.
-
 
 level02@OverRide:~$ ./level02 
 ===== [ Secure Access System v1.0 ] =====
