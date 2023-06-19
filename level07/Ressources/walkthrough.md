@@ -224,6 +224,7 @@ Input command: store
 
 B) Now we have to put the address of exit after the address of system,
 The address of system is at index[114], so we have to put the address of exit at index[115] :
+(Look at stack_representation.png)
 
 Check if index 115 is ok
 >>> 115 % 3
