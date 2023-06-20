@@ -9,13 +9,16 @@ We also now that the bounds of v6[400] are not checked, we can write in it as we
 
 We can store number in a index, but the index has to be something
 not modulo % 3 == 0.
-We don t want to have the index
+We don t want to have the index enter in this condition
 (uVar1 >> 0x18 == 0xb7) //0x18 = 24 | 0xb7 = 183
 checks if the value of uVar1 after shifting it 24 bits to the right is not equal to 183.
 If we don t have this two conditions, we can store a number at the index that we want.
 
 So here we want to do some ret2libc like in the level04 to overwrite the Eip
 with the address of system, the return adress of system with the address of exit and the argument of system with the address of /bin/sh.
+We are going to do this using the store_number function in the program, like i said earlier
+we can store a number at the index that we want, so we can overwrite some specific addresses. (like the return address of the main for example).
+
 
 
 But first we have to find the offset between the buffer and the return address of the main function.
@@ -125,7 +128,7 @@ We have to test if we can put this index :
 0
 
 Oh damn... We go in the condition : (uVar2 % 3 == 0)
-So we don t write the number...
+So we can t store the number...
 puts(" *** ERROR! ***");
 puts("   This index is reserved for wil!");
 puts(" *** ERROR! ***");
@@ -148,7 +151,10 @@ Create a little program to test the integer overflow : test_uint.c
 
 Ok perfect we just have to add 456 to 4294967296 to have the same index :
 
-Now we have to divide it by 4 because we are in uint format :
+Now we have to divide it by 4 because of the program, it will multiply our index by 4:
+*(_DWORD *)(a1 + 4 * v3) = unum;
+
+
 >>> ((4294967296 + 456) / 4)
 or 
 >>> ((4294967297) / 4 + 114)
@@ -173,6 +179,17 @@ Check with our script decode.c if (uVar1 >> 0x18 == 0xb7) is false
 Value = 1073741938 | is Good% 
 
 The value 1073741938 is good !
+
+Test if 1073741938 is the write index :
+
+Input command: store
+Number: 11111
+Index: 1073741938
+Completed store command successfully
+Input command: read           
+Index: 1073741938
+Number at data[1073741938] is 11111
+Completed read command successfully
 
 
 5) We have to find the address of system, exit and /bin/sh :
